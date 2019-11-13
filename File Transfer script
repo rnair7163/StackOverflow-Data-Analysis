@@ -1,0 +1,17 @@
+## We have used rahul's azure account 
+
+rahul public ip : 40.114.54.151
+username : rahulmnair
+password : Classicrahul007!
+
+# Data Transfer to rahul's pc
+
+# File transfer from local to azure
+pscp -r -P 22 Users.csv rahulmnair@40.114.54.151:/home/rahulmnair
+
+# File transfer from azure to maria_dev
+scp -r -P 2222 -r -P 22 Users.csv maria_dev@172.17.0.2:/home/maria_dev
+
+# moving to maria_dev
+ssh -p 2222 maria_dev@localhost
+maria_dev
