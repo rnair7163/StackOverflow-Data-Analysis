@@ -15,3 +15,10 @@ scp -r -P 2222 -r -P 22 Users.csv maria_dev@172.17.0.2:/home/maria_dev
 # moving to maria_dev
 ssh -p 2222 maria_dev@localhost
 maria_dev
+
+# file transfer to hadoop
+hadoop fs -copyFromLocal /home/maria_dev/Users.csv /user/maria_dev
+
+# pig
+pig 
+
