@@ -1,2 +1,2 @@
-Select A.DisplayName from
-(select * from MyProject.valuable_users order by reputation desc limit 5) A;
+SELECT A.DisplayName FROM
+(SELECT * FROM sample.users ORDER BY reputation desc LIMIT 5) A;
