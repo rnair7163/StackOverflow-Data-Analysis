@@ -1,7 +1,6 @@
  1) to measure this parameter we will compute the accepted answers to the number of answers answered by the user.
 
 # computing the total number of answers given by the user.
-
 SELECT owner_user_id, count(distinct id) FROM `bigquery-public-data.stackoverflow.posts_answers` group by owner_user_id;
 
 # computing the total number correct answers given by the user.
