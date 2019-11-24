@@ -75,7 +75,7 @@ stopword_remover = StopWordsRemover(inputCol=regex_tokenizer.getOutputCol(), out
 count_vectorizer = CountVectorizer(inputCol=stopword_remover.getOutputCol(), outputCol="countFeatures", minDF=5)
 idf = IDF(inputCol=count_vectorizer.getOutputCol(), outputCol="features")
 lr = LogisticRegression(featuresCol=idf.getOutputCol(), labelCol="label")
-rf = RandomForestClassifier(numTrees=3, maxDepth=2, labelCol="label", seed=42, featuresCol=idf.getOutputCol())
+rf = RandomForestClassifier(numTrees=100, maxDepth=4, labelCol="label", seed=42, featuresCol=idf.getOutputCol())
 
 pipeline = Pipeline(stages=[
     label_stringIdx,
