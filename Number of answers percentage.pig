@@ -1,5 +1,5 @@
 
-# the purpose of this analysis is to identify the expert users community among the stack overflow users.
+## The purpose of this analysis is to identify the users with highest number of accepted answers
 
  ygude@hawk.iit.edu
  e643eb21d8A#
@@ -10,12 +10,14 @@ testyg@12345
 # pig
 hadoop fs -copyFromLocal /home/maria_dev/post_answers.csv /user/maria_dev
 
-# 1) load function for the post_answers
+# Loading post_answers dataset from the google query table
 post_answers_file = LOAD 'post_answers_file_1.csv' Using PigStorage(',') AS (id:int,
 owner_user_id:int,
 parent_id:chararray,
 post_type_id:int,
 score:int);
+
+# Creating 
 grpd_post_answers  = group post_answers_file by owner_user_id;
 cnt_post_answers   = foreach grpd_post_answers generate group, COUNT(post_answers_file.id);
 
