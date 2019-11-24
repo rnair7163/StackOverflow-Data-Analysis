@@ -36,4 +36,4 @@ cnt_accepted_answers_1 = foreach grpd_accepted_answers generate group as owner_u
 # obtaining the percentage
 join_percent_answers= join cnt_accepted_answers_1 by owner_user_id, cnt_post_answers_1 by owner_user_id;
 x = foreach join_percent_answers generate cnt_accepted_answers_1::owner_user_id, cnt_accepted_answers_1::post_acc_ans, cnt_post_answers_1::post_ans, (cnt_accepted_answers_1::post_acc_ans*100)/cnt_post_answers_1::post_ans;
-dump join_percent_answers;
+dump x;
