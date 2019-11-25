@@ -28,10 +28,13 @@ sqlContext = SQLContext(sc)
 sdf = sqlContext.createDataFrame(d, qSchema)
 print("the dataframe for the data: ", sdf)
 
+# filtering out null values
 sdf = sdf.filter(sdf.tags.isNotNull())
 
+# Splitting the data 
 (train_df, test_df) = sdf.randomSplit((0.75, 0.25), seed = 100)
 
+# For removing HTML tags
 class BsTextExtractor(Transformer, HasInputCol, HasOutputCol):
 
     @keyword_only
@@ -57,6 +60,8 @@ class BsTextExtractor(Transformer, HasInputCol, HasOutputCol):
         return dataset.withColumn(out_col, udf(f, t)(in_col))
   
 nltk.download('stopwords')
+
+# list of stopwords to be removed from the posts
 stop_words = list(set(stopwords.words('english')))
 
 labelIndexerModel = labelIndexer.fit(train_df)
@@ -88,9 +93,3 @@ print("the Predictions are: ", qwerty)
 
 evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="f1")
 evaluator.evaluate(predictions)
-
-paramGrid = (ParamGridBuilder()
-  .addGrid(lr.regParam, [0.01, 0.1, 0.5]) \
-  .addGrid(lr.maxIter, [10, 20, 50]) \
-  .addGrid(lr.elasticNetParam, [0.0, 0.8]) \
-  .build())
