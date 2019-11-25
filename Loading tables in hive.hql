@@ -35,13 +35,13 @@ create table if not exists project.votes(id int, post_id int, vote_type_id int)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
 STORED AS TEXTFILE;
 
-LOAD DATA LOCAL INPATH 'votes_data.csv'
+LOAD DATA LOCAL INPATH 'votess.csv'
 OVERWRITE INTO TABLE project.votes;
 
 # comments
-create table if not exists project.comments(id int, creation_date string, post_id int, user_id int, score int)
+create table if not exists project.comments(id int, post_id int, user_id int)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
 STORED AS TEXTFILE;
 
-LOAD DATA LOCAL INPATH 'data_comments.csv'
-OVERWRITE INTO TABLE project.votes;
+LOAD DATA LOCAL INPATH 'commentss.csv'
+OVERWRITE INTO TABLE project.comments;
