@@ -59,7 +59,6 @@ nltk.download('stopwords')
 # list of stopwords to be removed from the posts
 StopWords = list(set(stopwords.words('english')))
 
-# labelIndexer = StringIndexerModel(inputCol="tags", outputCol="label")
 labelIndexer = StringIndexer(inputCol="tags", outputCol="label").fit(train)
 bs_text_extractor = BsTextExtractor(inputCol="post", outputCol="untagged_post")
 RegexTokenizer = RegexTokenizer(inputCol=bs_text_extractor.getOutputCol(), outputCol="words", pattern="[^0-9a-z#+_]+")
@@ -68,11 +67,10 @@ StopwordRemover = StopWordsRemover(inputCol=RegexTokenizer.getOutputCol(), outpu
 CountVectorizer = CountVectorizer(inputCol=StopwordRemover.getOutputCol(), outputCol="countFeatures", minDF=5)
 idf = IDF(inputCol=CountVectorizer.getOutputCol(), outputCol="features")
 rf = RandomForestClassifier(labelCol="label", featuresCol=idf.getOutputCol(), numTrees=100, maxDepth=4)
-# labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel", labels= labelIndexer.labels)
 idx_2_string = IndexToString(inputCol="prediction", outputCol="predictedValue")
 idx_2_string.setLabels(labelIndexer.labels)
-# idx_2_string.getLabels()
 
+# creating the pipeline
 pipeline = Pipeline(stages=[
     labelIndexer,
     bs_text_extractor,
@@ -83,11 +81,16 @@ pipeline = Pipeline(stages=[
     rf,
     idx_2_string])
 
+# fitting the model
 model = pipeline.fit(train)
+
+# performing the prediction
 predictions = model.transform(test)
 
+# convert spark dataframe to Pandas Dataframe
 qwerty = predictions.toPandas()
 print("the Predictions are: ", qwerty)
 
+# evaluating the model
 evaluator = MulticlassClassificationEvaluator(labelCol="label", predictionCol="prediction", metricName="f1")
 evaluator.evaluate(predictions)
