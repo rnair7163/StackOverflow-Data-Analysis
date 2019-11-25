@@ -3,8 +3,7 @@ Analysing certain aspects of the stack overflow data
 
 # Methodology
 
-
-# Hive
+# Hive & Pig
 # Query 1: Most Viewed Users
 Writing query for top 100 most viewed users in the user dataset, column referred in this dataset was views.
 
@@ -17,6 +16,5 @@ Writing query for percentage of accepted answer by joining post answers and post
 # Query 4: Marking Spammers
 Writing query for marking spammers by matching vote id from votes dataset id = 12 (as described by Stack Overflow community a spam) with user id in comments dataset and grouping into one table.
 
-# Pig
 
 
