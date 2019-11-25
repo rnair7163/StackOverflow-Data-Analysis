@@ -1,38 +1,33 @@
 import pyspark
 from pyspark.sql.types import *
+import pandas as pd
+from pyspark.sql import SQLContext
 from bs4 import BeautifulSoup
 from pyspark import keyword_only
 from pyspark.ml import Transformer
 from pyspark.ml.param.shared import HasInputCol, HasOutputCol
 from pyspark.sql.functions import udf
 from pyspark.sql.types import StringType
-import pandas as pd
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import LogisticRegression, OneVsRest, RandomForestClassifier
 from pyspark.ml.feature import IDF, StringIndexer, StopWordsRemover, CountVectorizer, RegexTokenizer, IndexToString
 import nltk
-from nltk.corpus import stopwords   
-from pyspark.ml.evaluation import MulticlassClassificationEvaluator
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
-from pyspark.sql import SQLContext
-
+from nltk.corpus import stopwords
 
 # creating schema for the dataframe
 qSchema = StructType([StructField('post', StringType(), True),
                      StructField('tags', StringType(), True)])
-                     
 d = pd.read_csv("/Users/rahulnair/desktop/stack-overflow-data.csv")
 
 sqlContext = SQLContext(sc)
-
 sdf = sqlContext.createDataFrame(d, qSchema)
-print("the dataframe for the data: ", sdf)
 
 # filtering out null values
 sdf = sdf.filter(sdf.tags.isNotNull())
+print("the dataframe for the data: ", sdf)
 
 # Splitting the data 
-(train_data, test_data) = sdf.randomSplit((0.75, 0.25), seed = 100)
+(train, test) = sdf.randomSplit((0.75, 0.25), seed = 100)
 
 # For removing HTML tags
 class BsTextExtractor(Transformer, HasInputCol, HasOutputCol):
@@ -58,26 +53,28 @@ class BsTextExtractor(Transformer, HasInputCol, HasOutputCol):
         out_col = self.getOutputCol()
         in_col = dataset[self.getInputCol()]
         return dataset.withColumn(out_col, udf(f, t)(in_col))
-  
+    
 nltk.download('stopwords')
 
 # list of stopwords to be removed from the posts
 StopWords = list(set(stopwords.words('english')))
 
-LabelIndex = labelIndexer.fit(train_df)
+# labelIndexer = StringIndexerModel(inputCol="tags", outputCol="label")
+labelIndexer = StringIndexer(inputCol="tags", outputCol="label").fit(train)
 bs_text_extractor = BsTextExtractor(inputCol="post", outputCol="untagged_post")
 RegexTokenizer = RegexTokenizer(inputCol=bs_text_extractor.getOutputCol(), outputCol="words", pattern="[^0-9a-z#+_]+")
-StopwordRemover = StopWordsRemover(inputCol=regex_tokenizer.getOutputCol(), outputCol="filtered_words").setStopWords(
+StopwordRemover = StopWordsRemover(inputCol=RegexTokenizer.getOutputCol(), outputCol="filtered_words").setStopWords(
     StopWords)
-CountVectorizer = CountVectorizer(inputCol=stopword_remover.getOutputCol(), outputCol="countFeatures", minDF=5)
-idf = IDF(inputCol=count_vectorizer.getOutputCol(), outputCol="features")
-lr = LogisticRegression(featuresCol=idf.getOutputCol(), labelCol="label")
-rf = RandomForestClassifier(numTrees=100, maxDepth=4, labelCol="label", seed=42, featuresCol=idf.getOutputCol())
+CountVectorizer = CountVectorizer(inputCol=StopwordRemover.getOutputCol(), outputCol="countFeatures", minDF=5)
+idf = IDF(inputCol=CountVectorizer.getOutputCol(), outputCol="features")
+rf = RandomForestClassifier(labelCol="label", featuresCol=idf.getOutputCol(), numTrees=100, maxDepth=4)
+# labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel", labels= labelIndexer.labels)
 idx_2_string = IndexToString(inputCol="prediction", outputCol="predictedValue")
-idx_2_string.setLabels(LabelIndex.labels)
+idx_2_string.setLabels(labelIndexer.labels)
+# idx_2_string.getLabels()
 
 pipeline = Pipeline(stages=[
-    LabelIndex,
+    labelIndexer,
     bs_text_extractor,
     RegexTokenizer,
     StopwordRemover,
@@ -85,9 +82,10 @@ pipeline = Pipeline(stages=[
     idf,
     rf,
     idx_2_string])
-    
-model = pipeline.fit(train_data)
-predictions = model.transform(test_data)
+
+model = pipeline.fit(train)
+predictions = model.transform(test)
+
 qwerty = predictions.toPandas()
 print("the Predictions are: ", qwerty)
 
