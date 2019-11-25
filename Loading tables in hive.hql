@@ -26,3 +26,6 @@ create table if not exists project.post_questions(id int, accepted_answer_id int
 ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
 STORED AS TEXTFILE;
 
+# loading post_questions
+LOAD DATA LOCAL INPATH 'post_questions_file_1.csv'
+OVERWRITE INTO TABLE user_answers.post_questions;
