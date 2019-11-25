@@ -32,7 +32,7 @@ print("the dataframe for the data: ", sdf)
 sdf = sdf.filter(sdf.tags.isNotNull())
 
 # Splitting the data 
-(train_df, test_df) = sdf.randomSplit((0.75, 0.25), seed = 100)
+(train_data, test_data) = sdf.randomSplit((0.75, 0.25), seed = 100)
 
 # For removing HTML tags
 class BsTextExtractor(Transformer, HasInputCol, HasOutputCol):
@@ -62,32 +62,32 @@ class BsTextExtractor(Transformer, HasInputCol, HasOutputCol):
 nltk.download('stopwords')
 
 # list of stopwords to be removed from the posts
-stop_words = list(set(stopwords.words('english')))
+StopWords = list(set(stopwords.words('english')))
 
-labelIndexerModel = labelIndexer.fit(train_df)
+LabelIndex = labelIndexer.fit(train_df)
 bs_text_extractor = BsTextExtractor(inputCol="post", outputCol="untagged_post")
-regex_tokenizer = RegexTokenizer(inputCol=bs_text_extractor.getOutputCol(), outputCol="words", pattern="[^0-9a-z#+_]+")
-stopword_remover = StopWordsRemover(inputCol=regex_tokenizer.getOutputCol(), outputCol="filtered_words").setStopWords(
-    stop_words)
-count_vectorizer = CountVectorizer(inputCol=stopword_remover.getOutputCol(), outputCol="countFeatures", minDF=5)
+RegexTokenizer = RegexTokenizer(inputCol=bs_text_extractor.getOutputCol(), outputCol="words", pattern="[^0-9a-z#+_]+")
+StopwordRemover = StopWordsRemover(inputCol=regex_tokenizer.getOutputCol(), outputCol="filtered_words").setStopWords(
+    StopWords)
+CountVectorizer = CountVectorizer(inputCol=stopword_remover.getOutputCol(), outputCol="countFeatures", minDF=5)
 idf = IDF(inputCol=count_vectorizer.getOutputCol(), outputCol="features")
 lr = LogisticRegression(featuresCol=idf.getOutputCol(), labelCol="label")
 rf = RandomForestClassifier(numTrees=100, maxDepth=4, labelCol="label", seed=42, featuresCol=idf.getOutputCol())
-idx_to_string = IndexToString(inputCol="prediction", outputCol="predictedValue")
-idx_to_string.setLabels(labelIndexerModel.labels)
+idx_2_string = IndexToString(inputCol="prediction", outputCol="predictedValue")
+idx_2_string.setLabels(LabelIndex.labels)
 
 pipeline = Pipeline(stages=[
-    label_stringIdx,
+    LabelIndex,
     bs_text_extractor,
-    regex_tokenizer,
-    stopword_remover,
-    count_vectorizer,
+    RegexTokenizer,
+    StopwordRemover,
+    CountVectorizer,
     idf,
     rf,
-    idx_to_string])
+    idx_2_string])
     
-model = pipeline.fit(train_df)
-predictions = model.transform(test_df)
+model = pipeline.fit(train_data)
+predictions = model.transform(test_data)
 qwerty = predictions.toPandas()
 print("the Predictions are: ", qwerty)
 
